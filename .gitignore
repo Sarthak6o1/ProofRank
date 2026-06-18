@@ -5,11 +5,11 @@ __pycache__/
 .tools/
 venv/
 models/
-indices_sample/
 submission.csv
 team_*.csv
 *.parquet
 !indices/features.parquet
+!indices_sample/features.parquet
 .streamlit/
 build_metadata.json
 India_runs_data_and_ai_challenge/candidates.jsonl
