@@ -31,6 +31,7 @@ $CopyItems = @(
     "requirements.txt",
     "Dockerfile",
     "README_HF.md",
+    ".streamlit",
     "config",
     "src",
     "indices_sample",

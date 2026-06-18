@@ -1,0 +1,6 @@
+# HF Spaces embeds the app in an iframe (*.hf.space inside huggingface.co).
+# Browser cookie restrictions break Streamlit XSRF checks → 403 on file upload.
+# See: https://huggingface.co/docs/hub/spaces-cookie-limitations
+[server]
+enableXsrfProtection = false
+maxUploadSize = 50

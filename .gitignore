@@ -11,7 +11,8 @@ team_*.csv
 *.parquet
 !indices/features.parquet
 !indices_sample/features.parquet
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 build_metadata.json
 India_runs_data_and_ai_challenge/candidates.jsonl
 India_runs_data_and_ai_challenge/candidates.jsonl.gz
