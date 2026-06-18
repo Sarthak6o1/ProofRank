@@ -6,6 +6,7 @@ __pycache__/
 venv/
 models/
 submission.csv
+submission_test.csv
 team_*.csv
 *.parquet
 !indices/features.parquet

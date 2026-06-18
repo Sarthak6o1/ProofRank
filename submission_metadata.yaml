@@ -11,7 +11,7 @@ team_members:
     role: "ML Engineer"
 
 github_repo: "https://github.com/Sarthak6o1/ProofRank"
-sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/proofrank"
+sandbox_link: "https://huggingface.co/spaces/Sarthak080907/proofrank"
 reproduce_command: "python rank.py --indices ./indices --out ./submission.csv"
 
 compute:
@@ -38,9 +38,10 @@ ai_usage_summary: |
 methodology_summary: |
   ProofRank is a CPU-only hybrid ranker for the Redrob Senior AI Engineer JD. Offline
   index build took ~85 minutes once. Pre-built indices/ (FAISS, BM25, features.parquet)
-  are bundled in the repo via Git LFS. Reviewers clone, run git lfs pull, pip install,
-  then reproduce_command completes in under 5 minutes with no network. No candidates.jsonl
-  or build_index.py needed to reproduce ranking.
+  are on GitHub via Git LFS; reviewers clone, git lfs pull, pip install, then
+  reproduce_command completes in under 5 minutes with no network. Live sandbox on
+  HuggingFace ranks the organizer 50-profile sample via indices_sample/ using the same
+  rank_sandbox() path as production rank.py.
 
 declarations:
   read_submission_spec: true
