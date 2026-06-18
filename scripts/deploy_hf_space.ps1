@@ -1,17 +1,22 @@
 param(
-    [string]$SpaceUser = "Sarthak6o1",
+    [string]$SpaceUser = "Sarthak080907",
     [string]$SpaceName = "proofrank",
-    [string]$StagingDir = ""
+    [string]$StagingDir = "",
+    [string]$Token = ""
 )
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 if (-not $StagingDir) {
-    $StagingDir = Join-Path $env:TEMP "proofrank-hf-space"
+    $StagingDir = Join-Path $env:TEMP ("proofrank-hf-space-" + [guid]::NewGuid().ToString("n").Substring(0, 8))
 }
 
 $SpaceUrl = "https://huggingface.co/spaces/$SpaceUser/$SpaceName"
-$GitUrl = "https://huggingface.co/spaces/$SpaceUser/$SpaceName"
+if ($Token) {
+    $GitUrl = "https://${SpaceUser}:$Token@huggingface.co/spaces/$SpaceUser/$SpaceName"
+} else {
+    $GitUrl = "https://huggingface.co/spaces/$SpaceUser/$SpaceName"
+}
 
 Write-Host "Packaging ProofRank HF Space -> $StagingDir"
 
@@ -24,6 +29,7 @@ $CopyItems = @(
     "app.py",
     "rank.py",
     "requirements.txt",
+    "Dockerfile",
     "README_HF.md",
     "config",
     "src",
@@ -39,6 +45,9 @@ foreach ($item in $CopyItems) {
     Copy-Item -LiteralPath $src -Destination (Join-Path $StagingDir $item) -Recurse -Force
 }
 
+# Drop bytecode — not needed on HF and can confuse reviewers
+Get-ChildItem -LiteralPath $StagingDir -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+
 # HF Space README must be README.md with YAML frontmatter
 Copy-Item -LiteralPath (Join-Path $Root "README_HF.md") -Destination (Join-Path $StagingDir "README.md") -Force
 
@@ -53,15 +62,16 @@ if (-not (Test-Path -LiteralPath $sampleIndex)) {
 
 Push-Location $StagingDir
 try {
-    if (-not (Test-Path -LiteralPath ".git")) {
-        git init
-        git branch -M main
-    }
+    git init
+    git branch -M main
+    git lfs install --local --force
+    git lfs track "indices_sample/*.pkl"
+    git lfs track "indices_sample/*.index"
+    git lfs track "indices_sample/*.npy"
+    git lfs track "indices_sample/*.parquet"
+
     git add .
-    git commit -m "Deploy ProofRank sandbox with production-parity ranker" 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Nothing new to commit in staging (or commit failed)."
-    }
+    git commit -m "Deploy ProofRank sandbox with production-parity ranker"
 
     $remotes = git remote 2>$null
     if ($remotes -notcontains "space") {
