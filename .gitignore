@@ -5,7 +5,6 @@ __pycache__/
 .tools/
 venv/
 models/
-submission.csv
 submission_test.csv
 test.json
 testing.jsonl
