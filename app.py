@@ -109,17 +109,28 @@ if not pool:
 
 spec = load_role_spec(ROOT / "config" / "role_spec.yaml")
 rankable, honeypots = count_rankable(pool, spec)
-if honeypots:
-    st.caption(f"Source: {source_label}. **{honeypots} honeypot(s)** in pool will be excluded from results.")
+
+st.info(
+    f"**Pool:** {len(pool)} profiles · **Honeypots excluded:** {honeypots} · "
+    f"**Rankable max:** {rankable}"
+    + (f" ({len(pool)} − {honeypots} honeypots = {rankable})" if honeypots else "")
+)
+st.caption(f"Source: {source_label}")
 
 if rankable == 0:
-    st.error("No rankable candidates after honeypot filtering.")
+    st.error(f"No rankable candidates after removing {honeypots} honeypot(s).")
     st.stop()
 
 default_rows = min(20, rankable)
-limit = st.slider("Rows to rank", 5, rankable, default_rows)
-if limit < len(pool):
-    st.caption(f"Returning up to **{limit}** of **{rankable}** rankable candidates (pool size {len(pool)}).")
+limit = st.slider(
+    "Rows to rank",
+    5,
+    rankable,
+    default_rows,
+    help=f"Maximum {rankable}: {len(pool)} in pool minus {honeypots} honeypot(s).",
+)
+if limit > rankable:
+    st.warning(f"Requested {limit} rows but only **{rankable}** rankable candidates ({honeypots} honeypots removed).")
 
 try:
     with st.spinner("Running production ranking pipeline..."):
@@ -134,15 +145,24 @@ except RuntimeError as exc:
     st.error(str(exc))
     st.stop()
 
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Pool size", len(pool))
-c2.metric("Mode", meta.get("mode", "unknown"))
-c3.metric("Index bundle", meta.get("indices") or "—")
+c2.metric("Honeypots in pool", honeypots)
+c3.metric("Rankable max", rankable)
+c4.metric("Mode", meta.get("mode", "unknown"))
+c5.metric("Returned", len(ranked))
 audit_report = audit(ranked)
-c4.metric("Honeypots", audit_report["honeypots"])
-c5.metric("Trap titles", audit_report["trap_titles"])
+c6.metric("Honeypots in results", audit_report["honeypots"])
 
-st.caption(meta.get("engine", ""))
+st.caption(
+    f"{meta.get('engine', '')} · Index: `{meta.get('indices') or '—'}` · "
+    f"Trap titles in results: {audit_report['trap_titles']}"
+)
+if len(ranked) < limit:
+    st.caption(
+        f"Showing **{len(ranked)}** rows (requested {limit}). "
+        f"Only **{rankable}** candidates rankable after **{honeypots}** honeypot(s) removed."
+    )
 
 st.dataframe(
     [
