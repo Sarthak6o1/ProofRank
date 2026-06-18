@@ -1,0 +1,2 @@
+indices/*.pkl filter=lfs diff=lfs merge=lfs -text
+indices/*.index filter=lfs diff=lfs merge=lfs -text

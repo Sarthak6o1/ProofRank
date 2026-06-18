@@ -1,0 +1,50 @@
+team_name: "your-team-name-here"
+
+primary_contact:
+  name: "Full Name"
+  email: "primary@example.com"
+  phone: "+91-XXXXXXXXXX"
+
+team_members:
+  - name: "Member 1 Full Name"
+    email: "member1@example.com"
+    role: "ML Engineer"
+
+github_repo: "https://github.com/Sarthak6o1/ProofRank"
+sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/proofrank"
+reproduce_command: "python rank.py --indices ./indices --out ./submission.csv"
+
+compute:
+  platform: "Windows 11 laptop, CPU-only"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: true
+  pre_computation_time_minutes: 85
+
+ai_tools_used:
+  - "Cursor"
+  - "ChatGPT"
+
+ai_usage_summary: |
+  Used AI tools for architecture discussion, code drafting, and review. The submitted
+  ranking step does not call any hosted LLM or external API. Candidate data is processed
+  locally by deterministic feature extraction, cached retrieval indexes, and rule-based
+  reasoning generation. No candidate data was sent to any hosted LLM.
+
+methodology_summary: |
+  ProofRank is a CPU-only hybrid ranker for the Redrob Senior AI Engineer JD. Offline
+  index build took ~85 minutes once. Pre-built indices/ (FAISS, BM25, features.parquet)
+  are bundled in the repo via Git LFS. Reviewers clone, run git lfs pull, pip install,
+  then reproduce_command completes in under 5 minutes with no network. No candidates.jsonl
+  or build_index.py needed to reproduce ranking.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

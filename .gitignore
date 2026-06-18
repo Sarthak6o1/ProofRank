@@ -5,7 +5,6 @@ __pycache__/
 .tools/
 venv/
 models/
-# indices/ bundled via Git LFS for one-command reproduce (rank.py only)
 indices_sample/
 submission.csv
 team_*.csv
