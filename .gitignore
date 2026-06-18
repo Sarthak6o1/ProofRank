@@ -7,6 +7,9 @@ venv/
 models/
 submission.csv
 submission_test.csv
+test.json
+testing.jsonl
+test.jsonl
 team_*.csv
 *.parquet
 !indices/features.parquet

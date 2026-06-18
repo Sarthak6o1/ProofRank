@@ -1,9 +1,19 @@
 # ProofRank
 
-**Repository:** [github.com/Sarthak6o1/ProofRank](https://github.com/Sarthak6o1/ProofRank)  
-**Sandbox:** [huggingface.co/spaces/Sarthak080907/proofrank](https://huggingface.co/spaces/Sarthak080907/proofrank)
+[![Live Sandbox](https://img.shields.io/badge/Live_Sandbox-Open_Demo-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/Sarthak080907/proofrank)
+[![GitHub](https://img.shields.io/badge/GitHub-ProofRank-181717?style=for-the-badge&logo=github)](https://github.com/Sarthak6o1/ProofRank)
+[![Redrob Challenge](https://img.shields.io/badge/Redrob-Senior_AI_Engineer_JD-6C63FF?style=for-the-badge)](job_description.md)
 
 CPU-only hybrid ranker for the Redrob Senior AI Engineer JD: dual FAISS + dual BM25 retrieval, career-proof scoring, honeypot defenses, rule-based reasoning. No LLM at rank time.
+
+> **Try it live →** [**ProofRank Sandbox**](https://huggingface.co/spaces/Sarthak080907/proofrank)  
+> Rank the organizer's 50-profile sample (or upload your own JSON). Same `rank_sandbox()` engine as production `rank.py`.
+
+| | |
+|---|---|
+| **Live sandbox** | https://huggingface.co/spaces/Sarthak080907/proofrank |
+| **GitHub** | https://github.com/Sarthak6o1/ProofRank |
+| **Reproduce** | `python rank.py --indices ./indices --out ./submission.csv` |
 
 ---
 
@@ -25,6 +35,18 @@ Optional: `python India_runs_data_and_ai_challenge/validate_submission.py submis
 
 ---
 
+## Live sandbox (Hugging Face)
+
+**URL:** https://huggingface.co/spaces/Sarthak080907/proofrank
+
+- Opens with the bundled 50-profile `sample_candidates.json`
+- Optional JSON upload (≤100 profiles) to test the ranker
+- Hybrid mode when IDs match `indices_sample/`; same pipeline as `rank.py`
+
+Maintainers: [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md)
+
+---
+
 ## What's in the repo
 
 | Artifact | Purpose |
@@ -37,19 +59,6 @@ Optional: `python India_runs_data_and_ai_challenge/validate_submission.py submis
 | `submission_metadata.yaml` | Portal metadata template |
 
 Pre-built indices are bundled so judges only run `rank.py` for reproduction.
-
----
-
-## HuggingFace sandbox
-
-Live demo on organizer `sample_candidates.json` (50 profiles). Same `rank_sandbox()` engine as production.
-
-Deploy / update: [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md)
-
-```powershell
-powershell -File scripts/build_sandbox_index.ps1
-powershell -File scripts/deploy_hf_space.ps1 -SpaceUser Sarthak080907 -SpaceName proofrank -Token YOUR_HF_TOKEN
-```
 
 ---
 
