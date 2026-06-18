@@ -228,12 +228,23 @@ def rank_sandbox(candidates: list[dict], top_n: int, spec: dict | None = None, r
     indices_dir = resolve_indices_dir(base)
     if indices_dir is not None:
         ids_in_index = {str(cid) for cid in np.load(indices_dir / "candidate_ids.npy", allow_pickle=True)}
-        if allowlist <= ids_in_index:
+        matched_ids = allowlist & ids_in_index
+        if matched_ids == allowlist:
             rows = cached_rank_subset(indices_dir, spec, top_n, allowlist)
             return rows, {
                 "mode": "cached_hybrid",
                 "indices": indices_dir.name,
                 "engine": "same as rank.py (FAISS + dual BM25 + composite score)",
+            }
+        if matched_ids:
+            rows = cached_rank_subset(indices_dir, spec, top_n, matched_ids)
+            return rows, {
+                "mode": "cached_hybrid_partial",
+                "indices": indices_dir.name,
+                "engine": (
+                    f"hybrid rank on {len(matched_ids)}/{len(allowlist)} IDs in {indices_dir.name}/; "
+                    "upload only IDs from the bundled sample for full parity"
+                ),
             }
 
     rows = structured_rank_candidates(candidates, spec, top_n)

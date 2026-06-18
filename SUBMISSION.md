@@ -35,13 +35,13 @@ python scripts/build_index.py \
 
 ```bash
 git clone https://github.com/Sarthak6o1/ProofRank.git && cd ProofRank
-git lfs install && git lfs pull
+git lfs install
+git lfs pull
 pip install -r requirements.txt
 python rank.py --indices ./indices --out ./submission.csv
 ```
 
-Timed command: `python rank.py --indices ./indices --out ./submission.csv`  
-`git lfs pull` (~1 GB) is one-time setup, not part of the 5-minute timer.
+Run `git lfs install` and `git lfs pull` before `rank.py`. That setup is separate from the timed reproduce step.
 
 ---
 

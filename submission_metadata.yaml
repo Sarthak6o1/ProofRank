@@ -37,11 +37,11 @@ ai_usage_summary: |
 
 methodology_summary: |
   ProofRank is a CPU-only hybrid ranker for the Redrob Senior AI Engineer JD. Offline
-  index build took ~85 minutes once. Pre-built indices/ (FAISS, BM25, features.parquet)
-  are on GitHub via Git LFS; reviewers clone, git lfs pull, pip install, then
-  reproduce_command completes in under 5 minutes with no network. Live sandbox on
-  HuggingFace ranks the organizer 50-profile sample via indices_sample/ using the same
-  rank_sandbox() path as production rank.py.
+  Pre-built indices/ (FAISS, BM25, features.parquet) are on GitHub via Git LFS.
+  Reviewers clone, run git lfs install and git lfs pull, pip install, then run
+  reproduce_command with no network. Live sandbox on HuggingFace ranks the organizer
+  50-profile sample via indices_sample/ using the same rank_sandbox() path as
+  production rank.py.
 
 declarations:
   read_submission_spec: true

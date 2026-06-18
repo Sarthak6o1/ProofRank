@@ -44,15 +44,24 @@ def load_candidate_pool(uploaded) -> tuple[list[dict], str, str | None]:
     if uploaded is not None:
         try:
             raw = uploaded.getvalue()
-            data = json.loads(raw.decode("utf-8"))
+            if not raw:
+                uploaded.seek(0)
+                raw = uploaded.read()
+            data = json.loads(raw.decode("utf-8-sig"))
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise ValueError(f"Invalid JSON upload: {exc}") from exc
+        except AttributeError:
+            # Older Streamlit UploadedFile without seek
+            data = json.loads(uploaded.read().decode("utf-8-sig"))
         if isinstance(data, dict):
             data = data.get("candidates") or data.get("data") or [data]
         if not isinstance(data, list):
             raise ValueError("Upload must be a JSON array of candidate objects.")
         if not data:
             raise ValueError("Uploaded JSON array is empty.")
+        missing_id = [i for i, c in enumerate(data[:5]) if not c.get("candidate_id")]
+        if missing_id:
+            raise ValueError("Each candidate object must include candidate_id.")
         name = getattr(uploaded, "name", None)
         return data[:100], "uploaded JSON", name
     sample_path = ROOT / "India_runs_data_and_ai_challenge" / "sample_candidates.json"
@@ -110,8 +119,16 @@ else:
 uploaded = st.file_uploader(
     "Upload candidate JSON (array, ≤100 profiles)",
     type=["json"],
-    help="Upload the organizer sample_candidates.json or a subset whose IDs exist in indices_sample/.",
+    help="Upload sample_candidates.json (or a subset). Must be a JSON array; each item needs candidate_id.",
 )
+
+use_bundled = st.checkbox(
+    "Use bundled sample_candidates.json (ignore upload)",
+    value=False,
+    help="Check this to rank the default 50-profile sample instead of an uploaded file.",
+)
+if use_bundled:
+    uploaded = None
 
 try:
     pool, source_label, upload_name = load_candidate_pool(uploaded)
@@ -161,13 +178,15 @@ if rankable == 0:
     st.stop()
 
 default_rows = min(20, rankable)
+# Reset slider when pool source/size changes (fixes upload after bundled session)
+slider_key = f"rank_rows_{upload_name or 'bundled'}_{len(pool)}_{rankable}"
 limit = st.slider(
     "Rows to rank",
     min_value=5,
     max_value=rankable,
     value=min(default_rows, rankable),
     help=f"Max {rankable}: {len(pool)} pool − {honeypots} honeypots.",
-    key="sandbox_rows_to_rank",
+    key=slider_key,
 )
 
 try:

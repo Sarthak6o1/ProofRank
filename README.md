@@ -7,21 +7,19 @@ CPU-only hybrid ranker for the Redrob Senior AI Engineer JD: dual FAISS + dual B
 
 ---
 
-## Judges — reproduce ranking (no 85-min build)
+## Judges — reproduce ranking
 
 Pre-built `indices/` are in this repo (Git LFS). **No `candidates.jsonl`. No `build_index.py`.**
 
 ```bash
 git clone https://github.com/Sarthak6o1/ProofRank.git && cd ProofRank
-git lfs install && git lfs pull
+git lfs install
+git lfs pull
 pip install -r requirements.txt
 python rank.py --indices ./indices --out ./submission.csv
 ```
 
-| Step | Time | Network |
-|------|------|---------|
-| `git lfs pull` | ~5–15 min (one-time) | Yes |
-| `rank.py` (reproduce_command) | < 5 min | **No** |
+Run `git lfs install` and `git lfs pull` before `rank.py` so LFS index files are present locally. That setup step is separate from the timed `reproduce_command`.
 
 Optional: `python India_runs_data_and_ai_challenge/validate_submission.py submission.csv`
 
@@ -31,14 +29,14 @@ Optional: `python India_runs_data_and_ai_challenge/validate_submission.py submis
 
 | Artifact | Purpose |
 |----------|---------|
-| `indices/` (Git LFS, ~1 GB) | Production FAISS + BM25 + features for 100K |
-| `indices_sample/` (~0.5 MB) | 50-profile bundle for HF sandbox |
+| `indices/` (Git LFS) | Production FAISS + BM25 + features for 100K |
+| `indices_sample/` | 50-profile bundle for HF sandbox |
 | `rank.py` | Production entrypoint |
 | `app.py` | Streamlit sandbox UI |
 | `config/role_spec.yaml` | JD query, weights, guards |
 | `submission_metadata.yaml` | Portal metadata template |
 
-Offline build was ~85 min once; results are bundled so judges only run `rank.py`.
+Pre-built indices are bundled so judges only run `rank.py` for reproduction.
 
 ---
 
