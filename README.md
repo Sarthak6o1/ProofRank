@@ -46,13 +46,14 @@ Offline build was ~85 min once; results are bundled so judges only run `rank.py`
 
 ## HuggingFace sandbox
 
+See [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md) for deploy steps.
+
 ```bash
-python scripts/build_index.py \
-  --candidates ./India_runs_data_and_ai_challenge/sample_candidates.json \
-  --out ./indices_sample
+powershell -File scripts/build_sandbox_index.ps1
+powershell -File scripts/deploy_hf_space.ps1 -SpaceUser YOUR_HF_USER -SpaceName proofrank
 ```
 
-Deploy: `app.py`, `rank.py`, `requirements.txt`, `config/`, `src/`, `sample_candidates.json`, `indices_sample/`.
+Sandbox URL for portal: `https://huggingface.co/spaces/YOUR_HF_USER/proofrank`
 
 ---
 
