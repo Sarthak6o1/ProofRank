@@ -17,6 +17,12 @@ if (-not (Test-Path -LiteralPath $Sample)) {
     throw "Missing sample file: $Sample"
 }
 
-Write-Host "Building sandbox indexes from sample_candidates.json -> indices_sample/"
-& $Py (Join-Path $Root "scripts\build_index.py") --candidates $Sample --out $Out
+$Prod = Join-Path $Root "indices\faiss_career.index"
+if (Test-Path -LiteralPath $Prod) {
+    Write-Host "Extracting sandbox indexes from production indices/ (no re-embed) -> indices_sample/"
+    & $Py (Join-Path $Root "scripts\extract_sandbox_indices.py") --sample $Sample --source (Join-Path $Root "indices") --out $Out
+} else {
+    Write-Host "Building sandbox indexes from sample_candidates.json -> indices_sample/"
+    & $Py (Join-Path $Root "scripts\build_index.py") --candidates $Sample --out $Out
+}
 Write-Host "Done. Streamlit sandbox will use the same hybrid ranker as rank.py."
