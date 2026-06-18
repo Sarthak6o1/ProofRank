@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+.tools/
+venv/
+models/
+# indices/ bundled via Git LFS for one-command reproduce (rank.py only)
+indices_sample/
+submission.csv
+team_*.csv
+*.parquet
+!indices/features.parquet
+.streamlit/
+build_metadata.json
+India_runs_data_and_ai_challenge/candidates.jsonl
+India_runs_data_and_ai_challenge/candidates.jsonl.gz
+India_runs_data_and_ai_challenge/*.docx
+India_runs_data_and_ai_challenge/~$*
+index_build.log

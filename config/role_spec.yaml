@@ -1,0 +1,257 @@
+role_name: "Senior AI Engineer - Founding Team"
+jd_query: |
+  Senior AI Engineer founding team role at Redrob AI. Own ranking, retrieval,
+  candidate-job matching, embeddings, hybrid search, vector databases, learning
+  to rank, recommendation systems, RAG, LLM fine-tuning, Python production code,
+  offline evaluation, NDCG, MRR, MAP, A/B testing, recruiter feedback loops.
+  Prefer 5-9 years, India, Pune or Noida, product-company ML systems, scrappy
+  shipper mindset. Avoid keyword-only AI skills, research-only, consulting-only,
+  LangChain tutorial profiles, title chasers, and stale low-response candidates.
+
+# BM25-only query (positive recall). Dense search uses cached jd_query_vec.npy.
+retrieval_query: |
+  Senior AI Engineer ranking retrieval embeddings hybrid search vector database
+  recommendation systems learning to rank Python production deployed real users
+  offline evaluation NDCG MRR MAP A/B testing recruiter matching Pune Noida India
+  product company semantic search FAISS sentence-transformers
+
+retrieval:
+  top_k: 3000
+  rrf_k: 60
+  safety_pool: 350
+
+scoring_weights:
+  retrieval_rrf: 0.14
+  career_evidence: 0.38
+  title_tier: 0.13
+  yoe_location_fit: 0.09
+  skill_trust: 0.07
+  assessment_score: 0.05
+  product_company: 0.04
+  education_score: 0.04
+  company_scale_score: 0.03
+  work_mode_fit: 0.02
+  platform_activity_score: 0.02
+  anti_pattern_penalty: 0.12
+
+top10_guard:
+  min_career_evidence: 0.55
+  min_title_tier_score: 0.65
+  exclude_trap_titles: true
+
+top_rank_availability_guard:
+  enabled: true
+  max_rank: 25
+  stale_days: 180
+  min_response_rate: 0.15
+  hard_min_response: 0.08
+  strong_career_override: 0.62
+
+safety_pool_guard:
+  min_career_evidence: 0.45
+  min_title_tier_score: 0.65
+
+rank_time:
+  eval_weight: 0.04
+  shipper_weight: 0.03
+  hr_tech_weight: 0.02
+  location_tier_weight: 0.03
+  eval_evidence_terms:
+    - ndcg
+    - mrr
+    - map
+    - offline evaluation
+    - offline-to-online
+    - a/b test
+    - ab test
+    - evaluation framework
+    - benchmark
+  shipper_terms:
+    - shipped
+    - deployed
+    - production
+    - real users
+    - prototype
+    - v2
+    - scrappy
+    - serving
+    - week
+  hr_tech_terms:
+    - recruiter
+    - talent
+    - hiring
+    - marketplace
+    - candidate matching
+    - job matching
+
+location_tiers:
+  preferred:
+    - pune
+    - noida
+  metro:
+    - delhi
+    - gurgaon
+    - gurugram
+    - bangalore
+    - bengaluru
+    - hyderabad
+    - mumbai
+
+yoe:
+  min: 5.0
+  max: 9.0
+
+location_boost:
+  - India
+  - Pune
+  - Noida
+  - Delhi
+  - Gurgaon
+  - Gurugram
+  - Bangalore
+  - Bengaluru
+  - Hyderabad
+  - Mumbai
+
+title_tiers:
+  strong:
+    - Senior AI Engineer
+    - AI Engineer
+    - Lead AI Engineer
+    - Machine Learning Engineer
+    - Senior Machine Learning Engineer
+    - ML Engineer
+    - Applied ML Engineer
+    - Search Engineer
+    - Recommendation Systems Engineer
+    - Recommender Systems Engineer
+    - NLP Engineer
+    - Senior NLP Engineer
+    - Senior Applied Scientist
+  possible:
+    - Data Scientist
+    - Senior Data Scientist
+    - Data Engineer
+    - Backend Engineer
+    - Software Engineer
+    - Senior Software Engineer
+    - Analytics Engineer
+  trap:
+    - HR Manager
+    - Human Resources Manager
+    - Marketing Manager
+    - Accountant
+    - Sales Executive
+    - Sales Manager
+    - Business Development Manager
+    - Content Writer
+    - Graphic Designer
+    - Customer Support
+    - Civil Engineer
+    - Mechanical Engineer
+    - Operations Manager
+    - Project Manager
+    - Business Analyst
+
+career_evidence_terms:
+  retrieval:
+    - retrieval
+    - information retrieval
+    - vector search
+    - semantic search
+    - embedding
+    - embeddings
+    - dense vector
+    - faiss
+    - pinecone
+    - qdrant
+    - milvus
+    - weaviate
+    - elasticsearch
+    - opensearch
+    - hybrid search
+    - bm25
+  ranking:
+    - ranking
+    - ranker
+    - rerank
+    - learning to rank
+    - ltr
+    - recommendation
+    - recommender
+    - discovery feed
+    - candidate-jd matching
+    - matching pipeline
+    - relevance
+  production:
+    - production
+    - shipped
+    - deployed
+    - serving
+    - real users
+    - online metrics
+    - offline evaluation
+    - a/b test
+    - ab test
+    - ndcg
+    - mrr
+    - map
+    - click-through
+    - drift
+    - latency
+    - p95
+  llm:
+    - rag
+    - llm
+    - fine-tun
+    - lora
+    - qlora
+    - peft
+    - sentence-transformer
+  plain_language:
+    - connect users with relevant information
+    - search product
+    - matching system
+    - recruiter feedback
+    - evaluation framework
+    - feedback loop
+    - optimization target
+    - product discovery
+    - semantic search
+    - keyword search to embedding
+    - migrated keyword search
+    - candidate matching
+    - offline benchmarks
+    - recruiter engagement
+
+consulting_companies:
+  - tcs
+  - tata consultancy
+  - infosys
+  - wipro
+  - accenture
+  - cognizant
+  - capgemini
+  - hcl
+  - tech mahindra
+  - mindtree
+  - ltimindtree
+  - mphasis
+  - hexaware
+  - persistent systems
+
+product_company_terms:
+  - product
+  - marketplace
+  - ecommerce
+  - e-commerce
+  - food delivery
+  - fintech
+  - saas
+  - platform
+  - consumer
+  - recruiter
+  - search product
+  - talent
+  - hiring
+  - job matching
