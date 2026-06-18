@@ -5,6 +5,7 @@ import io
 import json
 from pathlib import Path
 
+import numpy as np
 import streamlit as st
 
 from rank import audit, rank_sandbox, resolve_indices_dir
@@ -38,29 +39,44 @@ def rows_to_csv(rows: list[dict]) -> str:
     return buf.getvalue()
 
 
-def load_candidate_pool(uploaded) -> tuple[list[dict], str]:
+def load_candidate_pool(uploaded) -> tuple[list[dict], str, str | None]:
+    """Return pool, source label, and uploaded filename (if any)."""
     if uploaded is not None:
         try:
-            data = json.loads(uploaded.getvalue().decode("utf-8"))
+            raw = uploaded.getvalue()
+            data = json.loads(raw.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise ValueError(f"Invalid JSON upload: {exc}") from exc
         if isinstance(data, dict):
             data = data.get("candidates") or data.get("data") or [data]
         if not isinstance(data, list):
             raise ValueError("Upload must be a JSON array of candidate objects.")
-        return data[:100], "uploaded JSON"
+        if not data:
+            raise ValueError("Uploaded JSON array is empty.")
+        name = getattr(uploaded, "name", None)
+        return data[:100], "uploaded JSON", name
     sample_path = ROOT / "India_runs_data_and_ai_challenge" / "sample_candidates.json"
     if sample_path.exists():
-        return json.loads(sample_path.read_text(encoding="utf-8"))[:100], "bundled sample_candidates.json"
-    return [], "none"
+        return (
+            json.loads(sample_path.read_text(encoding="utf-8"))[:100],
+            "bundled sample_candidates.json",
+            None,
+        )
+    return [], "none", None
 
 
 def count_rankable(pool: list[dict], spec: dict) -> tuple[int, int]:
-    honeypots = 0
-    for candidate in pool:
-        if extract_features(candidate, spec).get("honeypot_flag"):
-            honeypots += 1
+    honeypots = sum(1 for c in pool if extract_features(c, spec).get("honeypot_flag"))
     return len(pool) - honeypots, honeypots
+
+
+def ids_in_index(indices_dir: Path | None, pool: list[dict]) -> tuple[int, int]:
+    if indices_dir is None:
+        return 0, len(pool)
+    ids = {str(x) for x in np.load(indices_dir / "candidate_ids.npy", allow_pickle=True)}
+    pool_ids = {str(c.get("candidate_id")) for c in pool if c.get("candidate_id")}
+    matched = len(pool_ids & ids)
+    return matched, len(pool_ids)
 
 
 st.set_page_config(page_title="ProofRank — Redrob Sandbox", page_icon="🔍", layout="wide")
@@ -94,11 +110,11 @@ else:
 uploaded = st.file_uploader(
     "Upload candidate JSON (array, ≤100 profiles)",
     type=["json"],
-    help="Re-upload the bundled sample_candidates.json or any subset whose IDs exist in indices_sample/.",
+    help="Upload the organizer sample_candidates.json or a subset whose IDs exist in indices_sample/.",
 )
 
 try:
-    pool, source_label = load_candidate_pool(uploaded)
+    pool, source_label, upload_name = load_candidate_pool(uploaded)
 except ValueError as exc:
     st.error(str(exc))
     st.stop()
@@ -109,13 +125,36 @@ if not pool:
 
 spec = load_role_spec(ROOT / "config" / "role_spec.yaml")
 rankable, honeypots = count_rankable(pool, spec)
+matched, total_ids = ids_in_index(indices_dir, pool)
 
-st.info(
-    f"**Pool:** {len(pool)} profiles · **Honeypots excluded:** {honeypots} · "
-    f"**Rankable max:** {rankable}"
-    + (f" ({len(pool)} − {honeypots} honeypots = {rankable})" if honeypots else "")
-)
-st.caption(f"Source: {source_label}")
+if upload_name:
+    st.success(f"Loaded **{len(pool)}** profiles from upload: `{upload_name}`")
+else:
+    st.caption(f"Using bundled **{len(pool)}** profiles from `sample_candidates.json`")
+
+# Prominent pool breakdown — same logic for default load and upload
+highlight = st.container()
+with highlight:
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Pool size", len(pool))
+    m2.metric("Honeypots excluded", honeypots, help="Trap profiles removed before ranking")
+    m3.metric("Rankable max", rankable, help=f"{len(pool)} − {honeypots} honeypots")
+    m4.metric("IDs in index", f"{matched}/{total_ids}", help="Hybrid mode needs IDs in indices_sample/")
+
+if honeypots:
+    st.warning(
+        f"**{honeypots} honeypot(s) removed** from this pool. "
+        f"Slider maximum is **{rankable}** ({len(pool)} − {honeypots} = {rankable}), not {len(pool)}."
+    )
+elif rankable < len(pool):
+    st.warning(f"Only **{rankable}** of **{len(pool)}** profiles are rankable after filtering.")
+
+if indices_dir and matched < total_ids:
+    st.warning(
+        f"**{total_ids - matched} uploaded ID(s)** are not in `{indices_dir.name}/`. "
+        "Those profiles use structured fallback scoring (no FAISS/BM25). "
+        "For full hybrid parity, upload only IDs from the bundled 50-sample set."
+    )
 
 if rankable == 0:
     st.error(f"No rankable candidates after removing {honeypots} honeypot(s).")
@@ -124,44 +163,40 @@ if rankable == 0:
 default_rows = min(20, rankable)
 limit = st.slider(
     "Rows to rank",
-    5,
-    rankable,
-    default_rows,
-    help=f"Maximum {rankable}: {len(pool)} in pool minus {honeypots} honeypot(s).",
+    min_value=5,
+    max_value=rankable,
+    value=min(default_rows, rankable),
+    help=f"Max {rankable}: {len(pool)} pool − {honeypots} honeypots.",
+    key="sandbox_rows_to_rank",
 )
-if limit > rankable:
-    st.warning(f"Requested {limit} rows but only **{rankable}** rankable candidates ({honeypots} honeypots removed).")
 
 try:
     with st.spinner("Running production ranking pipeline..."):
         ranked, meta = rank_sandbox(pool, top_n=limit, spec=spec, root=ROOT)
 except ValueError as exc:
     st.error(
-        f"{exc}\n\nFor hybrid mode, uploaded `candidate_id` values must exist in `{indices_dir.name if indices_dir else 'indices_sample'}/`. "
-        "Use the bundled sample file or a subset of those 50 IDs."
+        f"{exc}\n\nFor hybrid mode, uploaded `candidate_id` values must exist in "
+        f"`{indices_dir.name if indices_dir else 'indices_sample'}/`."
     )
     st.stop()
 except RuntimeError as exc:
     st.error(str(exc))
     st.stop()
 
-c1, c2, c3, c4, c5, c6 = st.columns(6)
-c1.metric("Pool size", len(pool))
-c2.metric("Honeypots in pool", honeypots)
-c3.metric("Rankable max", rankable)
-c4.metric("Mode", meta.get("mode", "unknown"))
-c5.metric("Returned", len(ranked))
 audit_report = audit(ranked)
-c6.metric("Honeypots in results", audit_report["honeypots"])
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Returned rows", len(ranked))
+c2.metric("Mode", meta.get("mode", "unknown"))
+c3.metric("Honeypots in results", audit_report["honeypots"])
+c4.metric("Trap titles in results", audit_report["trap_titles"])
 
 st.caption(
-    f"{meta.get('engine', '')} · Index: `{meta.get('indices') or '—'}` · "
-    f"Trap titles in results: {audit_report['trap_titles']}"
+    f"{meta.get('engine', '')} · Index: `{meta.get('indices') or '—'}` · Source: {source_label}"
 )
 if len(ranked) < limit:
-    st.caption(
-        f"Showing **{len(ranked)}** rows (requested {limit}). "
-        f"Only **{rankable}** candidates rankable after **{honeypots}** honeypot(s) removed."
+    st.info(
+        f"Returned **{len(ranked)}** rows (requested {limit}). "
+        f"Cap is **{rankable}** rankable = **{len(pool)}** pool − **{honeypots}** honeypots."
     )
 
 st.dataframe(
