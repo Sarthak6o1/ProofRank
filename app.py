@@ -8,6 +8,7 @@ from pathlib import Path
 import streamlit as st
 
 from rank import audit, rank_sandbox, resolve_indices_dir
+from src.features import extract_features
 from src.load import load_role_spec
 
 ROOT = Path(__file__).resolve().parent
@@ -37,6 +38,31 @@ def rows_to_csv(rows: list[dict]) -> str:
     return buf.getvalue()
 
 
+def load_candidate_pool(uploaded) -> tuple[list[dict], str]:
+    if uploaded is not None:
+        try:
+            data = json.loads(uploaded.getvalue().decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise ValueError(f"Invalid JSON upload: {exc}") from exc
+        if isinstance(data, dict):
+            data = data.get("candidates") or data.get("data") or [data]
+        if not isinstance(data, list):
+            raise ValueError("Upload must be a JSON array of candidate objects.")
+        return data[:100], "uploaded JSON"
+    sample_path = ROOT / "India_runs_data_and_ai_challenge" / "sample_candidates.json"
+    if sample_path.exists():
+        return json.loads(sample_path.read_text(encoding="utf-8"))[:100], "bundled sample_candidates.json"
+    return [], "none"
+
+
+def count_rankable(pool: list[dict], spec: dict) -> tuple[int, int]:
+    honeypots = 0
+    for candidate in pool:
+        if extract_features(candidate, spec).get("honeypot_flag"):
+            honeypots += 1
+    return len(pool) - honeypots, honeypots
+
+
 st.set_page_config(page_title="ProofRank — Redrob Sandbox", page_icon="🔍", layout="wide")
 
 with st.sidebar:
@@ -47,6 +73,10 @@ with st.sidebar:
     st.markdown(
         "**Production parity:** this Space calls `rank_sandbox()` from `rank.py` — "
         "not a separate demo scorer."
+    )
+    st.info(
+        "Bundled demo = organizer's first **50** profiles (only 1 strong ML fit). "
+        "Full 100K ranking is on GitHub via `rank.py` + `indices/`."
     )
 
 st.title("ProofRank Sandbox")
@@ -61,23 +91,48 @@ else:
         "`powershell -File scripts/build_sandbox_index.ps1`"
     )
 
-uploaded = st.file_uploader("Upload candidate JSON (array, ≤100 profiles)", type=["json"])
-if uploaded is not None:
-    candidates = json.loads(uploaded.read().decode("utf-8"))
-else:
-    sample_path = ROOT / "India_runs_data_and_ai_challenge" / "sample_candidates.json"
-    candidates = json.loads(sample_path.read_text(encoding="utf-8")) if sample_path.exists() else []
+uploaded = st.file_uploader(
+    "Upload candidate JSON (array, ≤100 profiles)",
+    type=["json"],
+    help="Re-upload the bundled sample_candidates.json or any subset whose IDs exist in indices_sample/.",
+)
 
-if not candidates:
+try:
+    pool, source_label = load_candidate_pool(uploaded)
+except ValueError as exc:
+    st.error(str(exc))
+    st.stop()
+
+if not pool:
     st.warning("Upload a JSON array or bundle `sample_candidates.json` with the Space.")
     st.stop()
 
-pool = candidates[:100]
-limit = st.slider("Rows to rank", 5, min(100, len(pool)), min(20, len(pool)))
 spec = load_role_spec(ROOT / "config" / "role_spec.yaml")
+rankable, honeypots = count_rankable(pool, spec)
+if honeypots:
+    st.caption(f"Source: {source_label}. **{honeypots} honeypot(s)** in pool will be excluded from results.")
 
-with st.spinner("Running production ranking pipeline..."):
-    ranked, meta = rank_sandbox(pool, top_n=limit, spec=spec, root=ROOT)
+if rankable == 0:
+    st.error("No rankable candidates after honeypot filtering.")
+    st.stop()
+
+default_rows = min(20, rankable)
+limit = st.slider("Rows to rank", 5, rankable, default_rows)
+if limit < len(pool):
+    st.caption(f"Returning up to **{limit}** of **{rankable}** rankable candidates (pool size {len(pool)}).")
+
+try:
+    with st.spinner("Running production ranking pipeline..."):
+        ranked, meta = rank_sandbox(pool, top_n=limit, spec=spec, root=ROOT)
+except ValueError as exc:
+    st.error(
+        f"{exc}\n\nFor hybrid mode, uploaded `candidate_id` values must exist in `{indices_dir.name if indices_dir else 'indices_sample'}/`. "
+        "Use the bundled sample file or a subset of those 50 IDs."
+    )
+    st.stop()
+except RuntimeError as exc:
+    st.error(str(exc))
+    st.stop()
 
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Pool size", len(pool))

@@ -57,7 +57,7 @@ def _try_select(row: dict, selected: list[dict], seen: set[str], spec: dict) -> 
     return True
 
 
-def rank_rows(rows: list[dict], spec: dict, top_n: int) -> list[dict]:
+def rank_rows(rows: list[dict], spec: dict, top_n: int, *, allow_partial: bool = False) -> list[dict]:
     if not rows:
         raise RuntimeError("No candidates available after filtering.")
 
@@ -119,7 +119,12 @@ def rank_rows(rows: list[dict], spec: dict, top_n: int) -> list[dict]:
                 break
 
     if len(selected) < top_n:
-        raise RuntimeError(f"Only {len(selected)} eligible candidates found; expected {top_n}.")
+        if not allow_partial:
+            raise RuntimeError(f"Only {len(selected)} eligible candidates found; expected {top_n}.")
+        top_n = len(selected)
+
+    if top_n == 0:
+        raise RuntimeError("No eligible candidates found after filtering.")
 
     selected = selected[:top_n]
     scores = monotonic_submission_scores([float(row.get("raw_score") or 0) for row in selected])
@@ -142,7 +147,7 @@ def structured_rank_candidates(candidates: list[dict], spec: dict, top_n: int) -
             float(row.get("career_evidence") or 0) + 0.10 * float(row.get("title_tier_score") or 0),
         )
         rows.append(row)
-    return rank_rows(rows, spec, top_n)
+    return rank_rows(rows, spec, top_n, allow_partial=True)
 
 
 def resolve_indices_dir(root: Path | None = None) -> Path | None:
@@ -203,7 +208,7 @@ def cached_rank_subset(indices_dir: Path, spec: dict, top_n: int, candidate_ids:
         row["retrieval_rrf"] = float(retrieval_score)
         rows.append(row)
 
-    return rank_rows(rows, spec, top_n)
+    return rank_rows(rows, spec, top_n, allow_partial=True)
 
 
 def rank_sandbox(candidates: list[dict], top_n: int, spec: dict | None = None, root: Path | None = None) -> tuple[list[dict], dict]:
