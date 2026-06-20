@@ -1,14 +1,14 @@
-team_name: "your-team-name-here"
+team_name: "Caraxes"
 
 primary_contact:
-  name: "Full Name"
-  email: "primary@example.com"
-  phone: "+91-XXXXXXXXXX"
+  name: "Anuj Kamal Jain"
+  email: "FILL_ME@example.com"   # TODO: real contact email for organizer outreach
+  phone: "+91-XXXXXXXXXX"        # TODO: real phone for top-50 / top-10 outreach
 
 team_members:
-  - name: "Member 1 Full Name"
-    email: "member1@example.com"
-    role: "ML Engineer"
+  - name: "Anuj Kamal Jain"
+    email: "FILL_ME@example.com" # TODO: same as primary contact email
+    role: "Team Lead"
 
 github_repo: "https://github.com/Sarthak6o1/ProofRank"
 sandbox_link: "https://huggingface.co/spaces/Sarthak080907/proofrank"
