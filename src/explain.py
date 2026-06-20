@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
-MAX_LEN = 360
+MAX_LEN = 650
 
 
 def _pct(x: object) -> str:

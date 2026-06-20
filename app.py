@@ -228,7 +228,6 @@ st.dataframe(
             "career_evidence": round(float(r.get("career_evidence") or 0), 3),
             "retrieval_rrf": round(float(r.get("retrieval_rrf") or 0), 3),
             "behavioral_mult": round(float(r.get("behavioral_mult") or 0), 3),
-            "reasoning": r["reasoning"],
         }
         for r in ranked
     ],
@@ -243,7 +242,14 @@ st.download_button(
     mime="text/csv",
 )
 
-with st.expander("Top-3 reasoning (recruiter view)"):
-    for row in ranked[:3]:
-        st.markdown(f"**#{row['rank']} · {row.get('current_title', 'Unknown')}**")
-        st.write(row["reasoning"])
+st.subheader("Full reasoning")
+st.caption("Recruiter-style justification for each ranked candidate (complete text, not table-truncated).")
+
+for row in ranked:
+    title = row.get("current_title") or "Unknown"
+    company = row.get("current_company") or ""
+    label = f"#{row['rank']} · {title}"
+    if company:
+        label += f" @ {company}"
+    with st.expander(label, expanded=row["rank"] <= 3):
+        st.markdown(row["reasoning"])
