@@ -4,69 +4,123 @@
 [![GitHub](https://img.shields.io/badge/GitHub-ProofRank-181717?style=for-the-badge&logo=github)](https://github.com/Sarthak6o1/ProofRank)
 [![Redrob Challenge](https://img.shields.io/badge/Redrob-Senior_AI_Engineer_JD-6C63FF?style=for-the-badge)](job_description.md)
 
-CPU-only hybrid ranker for the Redrob Senior AI Engineer JD: dual FAISS + dual BM25 retrieval, career-proof scoring, honeypot defenses, rule-based reasoning. No LLM at rank time.
-
-> **Try it live →** [**ProofRank Sandbox**](https://huggingface.co/spaces/Sarthak080907/proofrank)  
-> Rank the organizer's 50-profile sample (or upload your own JSON). Same `rank_sandbox()` engine as production `rank.py`.
+CPU-only hybrid ranker for the Redrob Senior AI Engineer JD: dual FAISS + dual BM25 retrieval, career-proof scoring, honeypot defenses, rule-based reasoning. **No LLM, no network at rank time.**
 
 | | |
 |---|---|
 | **Live sandbox** | https://huggingface.co/spaces/Sarthak080907/proofrank |
 | **GitHub** | https://github.com/Sarthak6o1/ProofRank |
-| **Reproduce** | `python rank.py --indices ./indices --out ./submission.csv` |
+| **Reproduce command** | `python rank.py --indices ./indices --out ./submission.csv` |
 
 ---
 
-## Judges — reproduce ranking
+## Reproduce the submission (Stage 3)
 
-Pre-built `indices/` are in this repo (Git LFS). **No `candidates.jsonl`. No `build_index.py`.**
+Pre-built `indices/` ship with the repo (Git LFS). **No `candidates.jsonl`, no `build_index.py`, no GPU, no network during Step 6.**
+
+**Prerequisites:** Git, [Git LFS](https://git-lfs.com/), Python **3.11+** on your PATH, ~2 GB free disk.  
+Install Python from [python.org](https://www.python.org/downloads/) (Windows: check **Add Python to PATH**) before Step 5 if `python` is not recognized.
+
+Clone and package install (Steps 1–5) take standard setup time depending on your network download speed.
+
+**Step 6 — the `reproduce_command` — runs within the hackathon compute constraint:** ~10–20 s on CPU, no network, using pre-built `indices/` loaded locally.
+
+### Step 1 — Enable Git LFS (once per machine)
 
 ```bash
-git clone https://github.com/Sarthak6o1/ProofRank.git && cd ProofRank
 git lfs install
+```
+
+### Step 2 — Clone the repo
+
+```bash
+git clone https://github.com/Sarthak6o1/ProofRank.git
+```
+
+If Git LFS was already enabled, index files usually download during clone.
+
+### Step 3 — Enter the repo
+
+```bash
+cd ProofRank
+```
+
+### Step 4 — Fetch index files (only if Step 6 errors on missing indices)
+
+```bash
 git lfs pull
-pip install -r requirements.txt
+```
+
+Skip this if `indices/faiss_full.index` is a large file (~100+ MB), not a tiny LFS pointer stub.  
+LFS files: `*.index`, `*.pkl`. Normal Git files: `features.parquet`, `candidate_ids.npy`, `jd_query_vec.npy`.
+
+### Step 5 — Install minimal Python packages
+
+```bash
+pip install -r requirements-rank.txt
+```
+
+Six packages only (`numpy`, `pandas`, `pyarrow`, `pyyaml`, `faiss-cpu`, `rank-bm25`).  
+Do **not** use full `requirements.txt` (torch, streamlit); that is for rebuilding indices or the sandbox only.
+
+On Windows, if `python` / `pip` fail, use `py -3` and `py -3 -m pip`, or run `scripts/setup_env.ps1` then:
+
+```powershell
+.\.tools\python-embed\python.exe -m pip install -r requirements-rank.txt
+```
+
+If setup stops at `No module named venv`, that is expected — use the embed command above, then run Step 6 with `.\.tools\python-embed\python.exe` instead of `python`.
+
+### Step 6 — Generate submission CSV
+
+This is the `reproduce_command` in `submission_metadata.yaml`. Runs offline using pre-built `indices/`.
+
+```bash
 python rank.py --indices ./indices --out ./submission.csv
 ```
 
-Run `git lfs install` and `git lfs pull` before `rank.py` so LFS index files are present locally. That setup step is separate from the timed `reproduce_command`.
+Expected output:
 
-Optional: `python India_runs_data_and_ai_challenge/validate_submission.py submission.csv`
+```text
+Ranking with cached FAISS + BM25 + structured scorer.
+Wrote 100 rows to .../submission.csv
+```
+
+**~10–20 s** on an 8-core CPU laptop — within the hackathon compute constraint (CPU-only, no network).
+
+### Step 7 — Validate CSV format (optional for judges)
+
+Organizers run their own checks at Stage 3. This script is a quick local sanity check (stdlib only):
+
+```bash
+python India_runs_data_and_ai_challenge/validate_submission.py submission.csv
+```
+
+Checks header, 100 rows, ranks 1–100, monotonic scores, and `CAND_#######` IDs. **Participants should run this before portal upload.**
+
+---
+
+## What judges are verifying
+
+| Check | Detail |
+|-------|--------|
+| Output | `submission.csv`: header + exactly 100 ranked rows, monotonic scores |
+| Speed | Step 6 runs **within the hackathon compute constraint** (~10–20 s on CPU, pre-built indices, no network) |
+| Artifacts | `indices/` shipped via Git LFS; index rebuild (~85 min) is offline and already done |
+
+**Files used by reproduce:** `rank.py`, `requirements-rank.txt`, `config/role_spec.yaml`, `src/*.py`, `indices/`.  
+**Not needed for Stage 3:** `app.py`, `indices_sample/`, full `requirements.txt`, `scripts/build_index.py`, `docs/`, Hugging Face sandbox.
 
 ---
 
 ## Live sandbox (Hugging Face)
 
-**URL:** https://huggingface.co/spaces/Sarthak080907/proofrank
+[https://huggingface.co/spaces/Sarthak080907/proofrank](https://huggingface.co/spaces/Sarthak080907/proofrank) — ranks the 50-profile sample (or your uploaded JSON ≤100) with the same engine as `rank.py`. Deploy notes: [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md).
 
-- Opens with the bundled 50-profile `sample_candidates.json`
-- Optional JSON upload (≤100 profiles) to test the ranker
-- Hybrid mode when IDs match `indices_sample/`; same pipeline as `rank.py`
-
-Maintainers: [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md)
-
----
-
-## What's in the repo
-
-| Artifact | Purpose |
-|----------|---------|
-| `indices/` (Git LFS) | Production FAISS + BM25 + features for 100K |
-| `indices_sample/` | 50-profile bundle for HF sandbox |
-| `rank.py` | Production entrypoint |
-| `app.py` | Streamlit sandbox UI |
-| `config/role_spec.yaml` | JD query, weights, guards |
-| `submission_metadata.yaml` | Portal metadata template |
-
-Pre-built indices are bundled so judges only run `rank.py` for reproduction.
-
----
-
-## Portal checklist
+## Participants — before portal upload
 
 1. Fill team name + contact in `submission_metadata.yaml`
-2. `python India_runs_data_and_ai_challenge/validate_submission.py submission.csv`
-3. Export PDF from `docs/APPROACH.md`
-4. Upload `team_<name>.csv` + metadata to portal
-
-Full checklist: [`SUBMISSION.md`](SUBMISSION.md)
+2. Run Steps 5–6 above (or use local `indices/`)
+3. `python India_runs_data_and_ai_challenge/validate_submission.py submission.csv` **(required before upload)**
+4. Export PDF from `docs/APPROACH.md`
+5. Upload `team_<name>.csv` + metadata. Full checklist: [`SUBMISSION.md`](SUBMISSION.md)

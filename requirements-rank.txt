@@ -1,0 +1,8 @@
+# Minimal deps for judge reproduce: rank.py with pre-built indices/ only.
+# Does not include torch, streamlit, or sentence-transformers (not used at rank time).
+numpy>=1.24
+pandas>=2.0
+pyarrow>=14.0
+pyyaml>=6.0
+faiss-cpu>=1.7
+rank-bm25>=0.2

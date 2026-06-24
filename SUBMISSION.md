@@ -33,15 +33,49 @@ python scripts/build_index.py \
 
 ## Judges — Stage 3 reproduce (GitHub)
 
+Full instructions: **[README.md — Reproduce the submission](README.md#reproduce-the-submission-stage-3)**.
+
+**Step 1**
+
 ```bash
-git clone https://github.com/Sarthak6o1/ProofRank.git && cd ProofRank
 git lfs install
+```
+
+**Step 2**
+
+```bash
+git clone https://github.com/Sarthak6o1/ProofRank.git
+```
+
+**Step 3**
+
+```bash
+cd ProofRank
+```
+
+**Step 4** (only if index files are missing)
+
+```bash
 git lfs pull
-pip install -r requirements.txt
+```
+
+**Step 5**
+
+```bash
+pip install -r requirements-rank.txt
+```
+
+**Step 6 — `reproduce_command` (within compute constraint, ~10–20 s)**
+
+```bash
 python rank.py --indices ./indices --out ./submission.csv
 ```
 
-Run `git lfs install` and `git lfs pull` before `rank.py`. That setup is separate from the timed reproduce step.
+**Step 7** (optional)
+
+```bash
+python India_runs_data_and_ai_challenge/validate_submission.py submission.csv
+```
 
 ---
 
