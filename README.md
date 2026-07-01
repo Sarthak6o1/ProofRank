@@ -23,7 +23,7 @@ Install Python from [python.org](https://www.python.org/downloads/) (Windows: ch
 
 Clone and package install (Steps 1–5) take standard setup time depending on your network download speed.
 
-**Step 6 — the `reproduce_command` — runs within the hackathon compute constraint:** ~10–20 s on CPU, no network, using pre-built `indices/` loaded locally.
+**Step 6 - the `reproduce_command` — runs within the hackathon compute constraint:** ~10–20 s on CPU, no network, using pre-built `indices/` loaded locally.
 
 ### Step 1 — Enable Git LFS (once per machine)
 
