@@ -1,19 +1,46 @@
+# Redrob Hackathon — Submission Metadata (Team Caraxes)
+#
+# Mirrors portal metadata at upload time. Stage 3 review uses this file to verify
+# portal fields against the repository.
+
+# ============================================================================
+# Team identity
+# ============================================================================
 team_name: "Caraxes"
 
 primary_contact:
   name: "Anuj Kamal Jain"
-  email: "FILL_ME@example.com"   # TODO: real contact email for organizer outreach
-  phone: "+91-XXXXXXXXXX"        # TODO: real phone for top-50 / top-10 outreach
+  email: "23ucs540@lnmiit.ac.in"   # Used for all organizer communication
+  phone: "+91-9499166336"          # Used for top-50 / top-10 outreach
 
 team_members:
   - name: "Anuj Kamal Jain"
-    email: "FILL_ME@example.com" # TODO: same as primary contact email
+    email: "23ucs540@lnmiit.ac.in"
     role: "Team Lead"
 
+  - name: "Anukrit Pundir"
+    email: "23ucs747@lnmiit.ac.in"
+    role: "Team Member"
+
+  - name: "Anshika Agarwal"
+    email: "anshikaagarwal766@gmail.com"
+    role: "Team Member"
+
+  - name: "Sarthak Gupta"
+    email: "gsarthak095@gmail.com"
+    role: "Team Member"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
 github_repo: "https://github.com/Sarthak6o1/ProofRank"
 sandbox_link: "https://huggingface.co/spaces/Sarthak080907/proofrank"
 reproduce_command: "python rank.py --indices ./indices --out ./submission.csv"
+# Pre-built indices/ on GitHub (Git LFS). Ranking step completes in ~15 s on CPU with no network.
 
+# ============================================================================
+# Compute environment
+# ============================================================================
 compute:
   platform: "Windows 11 laptop, CPU-only"
   cpu_cores: 8
@@ -25,24 +52,33 @@ compute:
   pre_computation_required: true
   pre_computation_time_minutes: 85
 
+# ============================================================================
+# AI tools declaration
+# ============================================================================
 ai_tools_used:
   - "Cursor"
   - "ChatGPT"
 
 ai_usage_summary: |
-  Used AI tools for architecture discussion, code drafting, and review. The submitted
-  ranking step does not call any hosted LLM or external API. Candidate data is processed
+  Cursor was used for coding. ChatGPT was used for debugging and architecture diagrams.
+  The ranking step does not call any hosted LLM or external API. Candidate data is processed
   locally by deterministic feature extraction, cached retrieval indexes, and rule-based
   reasoning generation. No candidate data was sent to any hosted LLM.
 
+# ============================================================================
+# Approach summary
+# ============================================================================
 methodology_summary: |
   ProofRank is a CPU-only hybrid ranker for the Redrob Senior AI Engineer JD. Offline
-  Pre-built indices/ (FAISS, BM25, features.parquet) are on GitHub via Git LFS.
+  pre-built indices/ (FAISS, BM25, features.parquet) are on GitHub via Git LFS.
   Reviewers clone, run git lfs install and git lfs pull, pip install -r requirements-rank.txt, then run
   reproduce_command with no network. Live sandbox on HuggingFace ranks the organizer
   50-profile sample via indices_sample/ using the same rank_sandbox() path as
   production rank.py.
 
+# ============================================================================
+# Declarations
+# ============================================================================
 declarations:
   read_submission_spec: true
   code_is_original_work: true

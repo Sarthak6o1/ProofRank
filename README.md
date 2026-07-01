@@ -88,39 +88,36 @@ Wrote 100 rows to .../submission.csv
 
 **~10–20 s** on an 8-core CPU laptop — within the hackathon compute constraint (CPU-only, no network).
 
-### Step 7 — Validate CSV format (optional for judges)
+### Step 7 — Validate CSV format (optional)
 
-Organizers run their own checks at Stage 3. This script is a quick local sanity check (stdlib only):
+Quick local format check (stdlib only):
 
 ```bash
 python India_runs_data_and_ai_challenge/validate_submission.py submission.csv
 ```
 
-Checks header, 100 rows, ranks 1–100, monotonic scores, and `CAND_#######` IDs. **Participants should run this before portal upload.**
+Checks header, 100 rows, ranks 1–100, monotonic scores, and `CAND_#######` IDs.
 
 ---
 
-## What judges are verifying
+## Reproduction scope
 
-| Check | Detail |
-|-------|--------|
+What Step 6 produces and what it depends on:
+
+| Item | Detail |
+|------|--------|
 | Output | `submission.csv`: header + exactly 100 ranked rows, monotonic scores |
-| Speed | Step 6 runs **within the hackathon compute constraint** (~10–20 s on CPU, pre-built indices, no network) |
-| Artifacts | `indices/` shipped via Git LFS; index rebuild (~85 min) is offline and already done |
+| Runtime | ~10–20 s on CPU with pre-built `indices/`, no network |
+| Artifacts | `indices/` via Git LFS; offline index build (~85 min) is already done |
 
-**Files used by reproduce:** `rank.py`, `requirements-rank.txt`, `config/role_spec.yaml`, `src/*.py`, `indices/`.  
-**Not needed for Stage 3:** `app.py`, `indices_sample/`, full `requirements.txt`, `scripts/build_index.py`, `docs/`, Hugging Face sandbox.
+**Used by reproduce:** `rank.py`, `requirements-rank.txt`, `config/role_spec.yaml`, `src/*.py`, `indices/`.
+
+**Not required for Step 6:** `app.py`, `indices_sample/`, full `requirements.txt`, `scripts/build_index.py`, `docs/`. The Hugging Face sandbox is a separate demo path — see below.
+
+Portal deliverables and upload checklist: [`SUBMISSION.md`](SUBMISSION.md). Team metadata: [`submission_metadata.yaml`](submission_metadata.yaml).
 
 ---
 
 ## Live sandbox (Hugging Face)
 
 [https://huggingface.co/spaces/Sarthak080907/proofrank](https://huggingface.co/spaces/Sarthak080907/proofrank) — ranks the 50-profile sample (or your uploaded JSON ≤100) with the same engine as `rank.py`. Deploy notes: [`docs/SANDBOX_DEPLOY.md`](docs/SANDBOX_DEPLOY.md).
-
-## Participants — before portal upload
-
-1. Fill team name + contact in `submission_metadata.yaml`
-2. Run Steps 5–6 above (or use local `indices/`)
-3. `python India_runs_data_and_ai_challenge/validate_submission.py submission.csv` **(required before upload)**
-4. Export PDF from `docs/APPROACH.md`
-5. Upload `team_<name>.csv` + metadata. Full checklist: [`SUBMISSION.md`](SUBMISSION.md)
