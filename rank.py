@@ -347,20 +347,28 @@ def cached_rank(indices_dir: Path, spec: dict, top_n: int) -> list[dict]:
     return rank_rows(rows, spec, top_n)
 
 
+def _write_submission_rows(writer: csv.writer, rows: list[dict]) -> None:
+    writer.writerow(["candidate_id", "rank", "score", "reasoning"])
+    for row in rows:
+        writer.writerow(
+            [
+                row["candidate_id"],
+                int(row["rank"]),
+                f"{float(row['score']):.4f}",
+                row["reasoning"],
+            ]
+        )
+
+
 def write_submission(rows: list[dict], out_path: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["candidate_id", "rank", "score", "reasoning"])
-        for row in rows:
-            writer.writerow(
-                [
-                    row["candidate_id"],
-                    int(row["rank"]),
-                    f"{float(row['score']):.4f}",
-                    row["reasoning"],
-                ]
-            )
+        _write_submission_rows(csv.writer(f), rows)
+
+
+def print_submission(rows: list[dict]) -> None:
+    """Print submission CSV to stdout (same columns as submission.csv)."""
+    _write_submission_rows(csv.writer(sys.stdout), rows)
 
 
 def audit(rows: list[dict]) -> dict:
@@ -397,8 +405,8 @@ def main() -> None:
     write_submission(rows, args.out)
     print(f"Wrote {len(rows)} rows to {args.out}")
     print("Audit:", audit(rows))
-    for row in rows[:10]:
-        print(f"{row['rank']:>3} {row['candidate_id']} {row['score']:.4f} {row.get('current_title')}")
+    print()
+    print_submission(rows)
 
 
 if __name__ == "__main__":
